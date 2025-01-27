@@ -18,8 +18,6 @@ export const Chat = () => {
       
     // });
     return () => {
-    //   socket.off("message");
-    };
   }, []);
 
   return (
