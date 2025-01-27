@@ -8,6 +8,7 @@ import { ModalAction } from "../components/modals/modalAction";
 import { ModalLoad } from "../components/modals/modalLoad";
 import { CreateMovement } from "../components/createMovement";
 import { decryptData } from "../utils/encrypted";
+import { Chat } from "../components/chat/chat";
 
 export const Home = ({ login }) => {
   const resp = JSON.parse(localStorage.getItem("login"));
@@ -40,43 +41,48 @@ export const Home = ({ login }) => {
 
   const getMovements = () => {
     setModalLoad(true);
-    movementsService.getMovementsById(resp._id).then((resp) => {
-      const result = resp.reduce((total, item) => {
-        const value = parseFloat(item.movementValue);
-        if (item.typeMovement === "1") {
-          return total + value;
-        } else if (item.typeMovement === "2") {
-          return total - value;
-        }
-        return total;
-      }, 0);
+    movementsService
+      .getMovementsById(resp._id)
+      .then((resp) => {
+        const result = resp.reduce((total, item) => {
+          const value = parseFloat(item.movementValue);
+          if (item.typeMovement === "1") {
+            return total + value;
+          } else if (item.typeMovement === "2") {
+            return total - value;
+          }
+          return total;
+        }, 0);
 
-      setSuma(result);
+        setSuma(result);
 
-      const dataTable = resp.map((item, index) => [
-        item.registrationDate,
-        item.typeMovement == "1" ? "Ingreso" : "Egreso",
-        item.movementValue,
-        item.movementDescription,
-        <div key={index}>
-          <Button
-            onclick={() => deleteMovement(item)}
-            type="error"
-            text={"Eliminar"}
-          />
-        </div>,
-      ]);
+        const dataTable = resp.map((item, index) => [
+          item.registrationDate,
+          item.typeMovement == "1" ? "Ingreso" : "Egreso",
+          item.movementValue,
+          item.movementDescription,
+          <div key={index}>
+            <Button
+              onclick={() => deleteMovement(item)}
+              type="error"
+              text={"Eliminar"}
+            />
+          </div>,
+        ]);
 
-      setArrayData(dataTable);
-      setModalLoad(false);
-    });
+        setArrayData(dataTable);
+        setModalLoad(false);
+      })
+      .catch((err) => {
+        // document.body.style.pointerEvents = "none";
+        console.log(err);
+        setModalLoad(false);
+        setTimerActive(true);
+        // alert("caduco el token ");
+      });
   };
 
   useEffect(() => {
-    const token = JSON.parse(localStorage.getItem("token"));
-    const decryp = decryptData(token);
-    // console.log(decryp.fecha);
-
     getMovements();
     if (resp) {
       setUser(resp);
@@ -89,6 +95,19 @@ export const Home = ({ login }) => {
       setClicked(true);
       console.log("Mouse clicked!");
       if (timerId) {
+        const getToken = localStorage.getItem("token");
+        const token = atob(JSON.parse(getToken));
+        const jsonToken = JSON.parse(token); ///token en json
+        const fecha = new Date();
+        const numberOfMlSeconds = fecha.getTime();
+        const addMlSeconds = 15 * 1000; // cambia el => 15 para cambiar el tiempo en segundos
+        const newDate = new Date(numberOfMlSeconds + addMlSeconds);
+        jsonToken.fecha = newDate;
+        const jsonString = JSON.stringify(jsonToken);
+        const encrypToken = JSON.stringify(btoa(jsonString));
+        localStorage.removeItem("token");
+        localStorage.setItem("token", encrypToken);
+        /// que no hagan efectos los click de el mouse
         clearTimeout(timerId);
       }
       startTimer();
@@ -96,12 +115,13 @@ export const Home = ({ login }) => {
     let timerId;
     const startTimer = () => {
       timerId = setTimeout(() => {
-        setTimerActive(true);
-        //  "Timer activated: No click detected for 1 minute."
+        // setTimerActive(true);
         localStorage.removeItem("token");
         localStorage.removeItem("login");
+        setTimerActive(true);
         login((state) => !state);
-      }, 900000); // 60000 ms = 1 minuto
+      }, 1200 * 1000 + 1); // 60000 ms = 1 minuto
+      // }, 900000); // 60000 ms = 1 minuto
     };
     window.addEventListener("click", handleClick);
     startTimer();
@@ -115,29 +135,53 @@ export const Home = ({ login }) => {
 
   return (
     <>
-      <div className="h-screen  flex flex-col">
-        <div className="w-full">
+      <div className="h-screen  relative w-full  flex flex-col">
+        <div className="relative ">
           <Header login={login} />
         </div>
-        <div
-          className={`flex-grow px-20 py-9 border border-purple-600 ${
-            timerActive ? "pointer-events-none" : ""
-          }`}
-        >
-          <div className="bg-slate-50 h-full rounded-3xl border border-red-400 ">
-            <div className=" h-full ">
-              <div className=" h-[50%]  flex justify-center flex-col">
-                <Card user={user} sum={suma} imgUrl={user.imgUrl} />
-              </div>
-              <div className="h-[8%] flex items-center justify-between text-nowrap">
-                <p className=" ml-2 text-lg font-medium">Mis movimientos</p>
-                <div className="w-28 mr-6">
-                  <Button text={"Añadir"} onclick={() => setAddModal(true)} />
+
+        <div className="relative  w-full flex-1 overflow-auto">
+          <div className="h-full flex flex-col">
+            {/* Contenido 1 (expandido) */}
+            <div className="flex-grow p-10">
+              <div
+                className={`"bg-slate-50 h-full rounded-3xl border ${
+                  timerActive ? "pointer-events-none" : ""
+                }`}
+              >
+                {timerActive && (
+                  <div className=" text-sm text-yellow-800 text-center rounded-lg rounded-t-3xl border-red-400 bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300">
+                    <span className="font-medium text-3xl animate-ping">
+                      ¡Tu sesión ha caducado!
+                    </span>{" "}
+                    Por favor inicia sesión de nuevo.
+                  </div>
+                )}
+
+                <div className="h-full">
+                  <div className="h-[50%] flex justify-center flex-col">
+                    <Card user={user} sum={suma} imgUrl={user.imgUrl} />
+                  </div>
+                  <div className="h-[8%] flex items-center justify-between text-nowrap">
+                    <p className="ml-2 text-lg font-medium">Mis movimientos</p>
+                    <div className="w-28 mr-6">
+                      <Button
+                        text={"Añadir"}
+                        onclick={() => setAddModal(true)}
+                      />
+                    </div>
+                  </div>
+                  <div className="h-[42%] flex justify-center">
+                    <Table title={titles} datos={arrayData} />
+                  </div>
                 </div>
               </div>
-              <div className="h-[42%]  flex justify-center">
-                <Table title={titles} datos={arrayData} />
-              </div>
+            </div>
+
+            {/* Contenido 2 (en la parte inferior derecha) */}
+            <div className="p-4 absolute bottom-0 right-0">
+              {/* Contenido que puede cambiar de tamaño */}
+              <Chat />
             </div>
           </div>
         </div>

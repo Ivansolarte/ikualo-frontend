@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { loginService } from "../../services/login";
 import { Input } from "../../elements/input";
@@ -43,7 +44,7 @@ export const LogIn = ({ setState }) => {
       if (!status) {
         return;
       }
-      localStorage.setItem("login", JSON.stringify(status));
+      localStorage.setItem("login", JSON.stringify(toString(status)));
       setState((prevState) => !prevState);
     });
   };

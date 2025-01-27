@@ -3,6 +3,7 @@ import log from "../assets/icon/logEmpresa.png";
 export const Header = ({login}) => {
   const close = () => {
     localStorage.removeItem('login')
+    localStorage.removeItem('token')
     login(state=>!state)
   };
 

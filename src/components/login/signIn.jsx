@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { Button } from "../../elements/button";
 import { Input } from "../../elements/input";
@@ -9,7 +10,7 @@ export const SignIn = ({ login, setState }) => {
   const auth = loginService();
   const [form, setForm] = useState({
     email: "ivansolarte69@gmail.com",
-    pass: "12345",
+    pass: "123456",
   });
   const [alert, setAlert] = useState(false);
 
@@ -24,7 +25,7 @@ export const SignIn = ({ login, setState }) => {
   const handleLogin = (e) => {
     e.preventDefault();
     auth.post(form)
-      .then(({ status, data, message,token }) => {
+      .then(({ status, data,token }) => {
         if (!status) {
           return;
         }
