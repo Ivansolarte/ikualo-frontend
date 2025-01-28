@@ -7,7 +7,7 @@ import { MovementsService } from "../services/movements.service";
 import { ModalAction } from "../components/modals/modalAction";
 import { ModalLoad } from "../components/modals/modalLoad";
 import { CreateMovement } from "../components/createMovement";
-import { decryptData } from "../utils/encrypted";
+import icoChat from "../assets/icon/chat.png";
 import { Chat } from "../components/chat/chat";
 
 export const Home = ({ login }) => {
@@ -24,6 +24,7 @@ export const Home = ({ login }) => {
   const [suma, setSuma] = useState("");
   const [clicked, setClicked] = useState(false); ///movimiento
   const [timerActive, setTimerActive] = useState(false);
+  const [showChat, setShowChat] = useState(false)
 
   const deleteMovement = (payload) => {
     setShowModal(true);
@@ -181,7 +182,17 @@ export const Home = ({ login }) => {
             {/* Contenido 2 (en la parte inferior derecha) */}
             <div className="p-4 absolute bottom-0 right-0">
               {/* Contenido que puede cambiar de tamaño */}
-              <Chat />
+              {!showChat ? (
+                <div className=" w-16 ">
+                  <img
+                    onClick={() => setShowChat(!showChat)}
+                    src={icoChat}
+                    alt=""
+                  />
+                </div>
+              ) : (
+                <Chat setShowChat={setShowChat} />
+              )}
             </div>
           </div>
         </div>

@@ -22,18 +22,22 @@ export const loginService = () => {
 
   const post = async (payload) => {
     const options = {
-      method: "POST", // or 'PUT'
-      body: JSON.stringify(payload), // data can be `string` or {object}!
+      method: "POST",
+      body: JSON.stringify(payload),
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json",  // Solo necesitas Content-Type para enviar JSON
       },
     };
-    const resp = await fetch(URL, options);
-    if (!resp.ok) {
-      throw new Error(`HTTP error! status: ${resp.status}`);
+    try {
+      const resp = await fetch(URL, options);
+      if (!resp.ok) {
+        throw new Error(`HTTP error! status: ${resp.status}`);
+      }
+      const data = await resp.json();
+      return data;
+    } catch (error) {
+      console.error("Error en la solicitud POST: ", error);
     }
-    const data = await resp.json();
-    return data;
   };
 
   const postUser = async (payload) => {
